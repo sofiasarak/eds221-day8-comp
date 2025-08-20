@@ -1,0 +1,113 @@
+---
+title: "GGplot practice"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+Loading in packages
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+```
+
+## Ggplot basics
+
+Read in lizard data
+```{r}
+lizards <- read_csv(here("data_tidy", "lizards.csv"))
+```
+
+### The essentials
+- data
+- asesthetics
+- a geometry
+
+```{r}
+# ggplot essentials, 3 ways
+
+# first (most basic)
+ggplot(data = lizards,
+       aes(x = total_length, y = weight)) + #essentials one and two
+  geom_point() #essential three
+
+#second; different syntax, same figure
+ggplot(data = lizards) + 
+  geom_point(aes(x = total_length, y = weight))
+
+#third; nothing stays consistent, so could create figure with different types of data
+ggplot() + 
+  geom_point(data = lizards,
+             aes(x = total_length, y = weight))
+
+```
+
+## Swap out geometries
+```{r}
+#bad example
+ggplot(data = lizards,
+       aes(x = total_length, y = weight)) +
+  geom_line()
+```
+
+Some geometry types only need one axis
+```{r}
+ggplot(data = lizards, aes(x = total_length)) + #only need one variable!
+  geom_histogram() 
+```
+
+Jiiterplots usually are best with one categorical and one continuous variable
+```{r}
+ggplot(data = lizards,
+       aes(x = weight, y = common_name)) + #when you have a categorical varibale w/ different long names, see if you can plot it on the y axis instead (to make it easier to read)
+  geom_jitter() #jitter spreads out in y direction
+```
+
+## Aesthetic mapping
+### Updating based on a constant value
+Don't need to use the 'aes()' function!
+
+```{r}
+ggplot(data = lizards, aes(x = weight)) + 
+  geom_histogram(color = "orange", fill = "purple", alpha = 0.5, linetype = "dotted")
+```
+
+## Updating aesthetics based on variables
+In that case, we need to use the aes() function
+
+```{r}
+ggplot(data = lizards,
+       aes(x = total_length, y = weight)) +
+  geom_point(aes(color = common_name),
+             alpha = 0.3) 
+#in order to use a variable from the data set, you need to be inside the aes() function; if you want to set aesthetics to a constant, you can do it outside of the function
+```
+
+# Themes
+## Update axis labels
+```{r}
+ggplot(data = lizards, aes(x = weight, y = site)) + 
+  geom_jitter(aes(color = common_name)) + 
+  labs(x = "Weight (g)",
+       y = "Study site",
+       title = "Lizard weights across sies at Jornada",
+       color = "Species") + #to change legend title, in labs() use the same argument that you're coloring by; in this case common_name is used to define color, so I change legend title by defining "color"
+  theme_minimal()
+```
+
+## Reorder data
+
+```{r}
+lizard_counts <- lizards %>% 
+  count(common_name) #creates a df with two columns: one for common_name and one for count!
+
+ggplot(data = lizard_counts,
+       aes(x = n, y = fct_reorder(common_name, n))) + #fct_reorder() puts it in order of highest count decreasing to lowest count; "factor is mapped to position"
+  geom_col() + 
+  labs(x = "Individuals (n)", 
+       y = "Species common name")
+```
+
